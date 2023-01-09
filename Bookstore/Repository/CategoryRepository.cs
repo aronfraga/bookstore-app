@@ -12,10 +12,6 @@ namespace Bookstore.Repository {
             _dbcontext = dbcontext;
         }
 
-        public void Save() {
-            _dbcontext.SaveChanges();
-        }
-
         public void Update(Category category) {
             _dbcontext.Categories.Update(category);
         }

@@ -7,14 +7,14 @@ using Microsoft.EntityFrameworkCore;
 namespace Bookstore.Controllers {
     public class CategoryController : Controller {
 
-        private readonly ICategoryRepository _dbcontext;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public CategoryController(ICategoryRepository dbcontext) { 
-            _dbcontext = dbcontext;
+        public CategoryController(IUnitOfWork unitOfWork) {
+            _unitOfWork = unitOfWork;
         }
         
         public IActionResult Index() {
-            IEnumerable<Category> dbResponse = _dbcontext.GetAll();
+            IEnumerable<Category> dbResponse = _unitOfWork.Category.GetAll();
             return View(dbResponse);
         }
 
@@ -29,8 +29,8 @@ namespace Bookstore.Controllers {
                 ModelState.AddModelError("Name", "The DisplayOrder cannot exactly match the name");
             }
             if (ModelState.IsValid) {
-                _dbcontext.Add(category);
-                _dbcontext.Save();
+                _unitOfWork.Category.Add(category);
+                _unitOfWork.Save();
                 TempData["success"] = "Category created successfully";
                 return RedirectToAction("Index");
             }
@@ -39,7 +39,7 @@ namespace Bookstore.Controllers {
 
         public IActionResult Edit(int id) {
             if(id == null || id == 0) return NotFound();
-            var dbResponse = _dbcontext.GetOne(data => data.Id == id);
+            var dbResponse = _unitOfWork.Category.GetOne(data => data.Id == id);
             if(dbResponse == null) return NotFound();
             return View(dbResponse);
         }
@@ -51,8 +51,8 @@ namespace Bookstore.Controllers {
                 ModelState.AddModelError("Name", "The DisplayOrder cannot exactly match the name");
             }
             if (ModelState.IsValid) {
-                _dbcontext.Update(category);
-                _dbcontext.Save();
+                _unitOfWork.Category.Update(category);
+                _unitOfWork.Save();
                 TempData["success"] = "Category updated successfully";
                 return RedirectToAction("Index");
             }
@@ -61,7 +61,7 @@ namespace Bookstore.Controllers {
 
         public IActionResult Delete(int id) {
             if (id == null || id == 0) return NotFound();
-            var dbResponse = _dbcontext.GetOne(data => data.Id == id);
+            var dbResponse = _unitOfWork.Category.GetOne(data => data.Id == id);
             if (dbResponse == null) return NotFound();
             return View(dbResponse);
         }
@@ -69,11 +69,11 @@ namespace Bookstore.Controllers {
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeletePOST(int id) {
-            var dbResponse = _dbcontext.GetOne(data => data.Id == id);
+            var dbResponse = _unitOfWork.Category.GetOne(data => data.Id == id);
             if (dbResponse == null) return NotFound();
-            
-            _dbcontext.Remove(dbResponse);
-            _dbcontext.Save();
+
+            _unitOfWork.Category.Remove(dbResponse);
+            _unitOfWork.Save();
             TempData["success"] = "Category deleted successfully";
             return RedirectToAction("Index");
         }
