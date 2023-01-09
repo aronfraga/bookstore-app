@@ -12,6 +12,7 @@ namespace Bookstore.Repository {
 
         public Repository(Context dbcontext) {
             _dbcontext = dbcontext;
+            _dbcontext.Products.Include(data => data.Category).Include(data => data.CoverType);
             this.dbSet = _dbcontext.Set<T>();
         }
 
@@ -20,13 +21,23 @@ namespace Bookstore.Repository {
             _dbcontext.SaveChanges();
         }
 
-        public IEnumerable<T> GetAll() {
+        public IEnumerable<T> GetAll(string? includeProperties = null) {
             IQueryable<T> query = dbSet;
+            if (includeProperties != null) {
+                foreach (var item in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries)) {
+                    query = query.Include(item);
+                }
+            }
             return query.ToList();
         }
 
-        public T GetOne(Expression<Func<T, bool>> filter) {
+        public T GetOne(Expression<Func<T, bool>> filter, string? includeProperties = null) {
             IQueryable<T> query = dbSet;
+            if (includeProperties != null) {
+                foreach (var item in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries)) {
+                    query = query.Include(item);
+                }
+            }
             query = query.Where(filter);
             return query.FirstOrDefault();
         }

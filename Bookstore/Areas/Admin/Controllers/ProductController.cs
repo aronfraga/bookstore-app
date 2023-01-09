@@ -6,21 +6,20 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
-namespace Bookstore.Areas.Admin.Controllers
-{
+namespace Bookstore.Areas.Admin.Controllers {
     [Area("Admin")]
-    public class ProductController : Controller
-    {
+    public class ProductController : Controller {
 
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IWebHostEnvironment _hostEnvironment;
 
-        public ProductController(IUnitOfWork unitOfWork) {
+        public ProductController(IUnitOfWork unitOfWork, IWebHostEnvironment hostEnvironment) {
             _unitOfWork = unitOfWork;
+            _hostEnvironment = hostEnvironment;
         }
 
         public IActionResult Index() {
-            IEnumerable<Product> dbResponse = _unitOfWork.Product.GetAll();
-            return View(dbResponse);
+            return View();
         }
 
 
@@ -43,40 +42,61 @@ namespace Bookstore.Areas.Admin.Controllers
             if (id == null || id == 0) {
                 return View(pvm);
             } else {
-
+                pvm.Product = _unitOfWork.Product.GetOne(data => data.Id == id);
+                return View(pvm);
             }
-            return View(pvm);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Upsert(Product product) {
+        public IActionResult Upsert(ProductViewModel productViewModel, IFormFile? file) {
             if (ModelState.IsValid) {
-                _unitOfWork.Product.Update(product);
+                string wwwRootPath = _hostEnvironment.WebRootPath;
+                if(file != null) {
+                    string fileName = Guid.NewGuid().ToString();
+                    var uploads = Path.Combine(wwwRootPath, @"images\products");
+                    var extension = Path.GetExtension(file.FileName);
+
+                    if(productViewModel.Product.ImageUrl != null) {
+                        var oldImagePath = Path.Combine(wwwRootPath, productViewModel.Product.ImageUrl.TrimStart('\\'));
+                        if (System.IO.File.Exists(oldImagePath)) System.IO.File.Delete(oldImagePath);
+                    }
+
+                    using (var fileStreams = new FileStream(Path.Combine(uploads, fileName + extension), FileMode.Create)) {
+                        file.CopyTo(fileStreams);
+                    }
+					productViewModel.Product.ImageUrl = @"\images\products\" + fileName + extension;
+                }
+                if (productViewModel.Product.Id == 0) {
+                    _unitOfWork.Product.Add(productViewModel.Product);
+                } else {
+                    _unitOfWork.Product.Update(productViewModel.Product);
+                }
                 _unitOfWork.Save();
-                TempData["success"] = "Cover Type updated successfully";
+                TempData["success"] = "Product created successfully";
                 return RedirectToAction("Index");
             }
-            return View(product);
+            return View(productViewModel);
         }
 
+        [HttpGet]
+        public IActionResult GetAllProduct() {
+            var dbResponse = _unitOfWork.Product.GetAll(includeProperties:"Category,CoverType");
+            return Json(new { data = dbResponse });
+        }
+
+        [HttpDelete]
         public IActionResult Delete(int id) {
-            if (id == null || id == 0) return NotFound();
             var dbResponse = _unitOfWork.Product.GetOne(data => data.Id == id);
-            if (dbResponse == null) return NotFound();
-            return View(dbResponse);
-        }
-
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public IActionResult DeletePOST(int id) {
-            var dbResponse = _unitOfWork.Product.GetOne(data => data.Id == id);
-            if (dbResponse == null) return NotFound();
-
+            if (dbResponse == null) return Json(new { success = false, message = "Error while deleting" });
+            
+            var oldImagePath = Path.Combine(_hostEnvironment.WebRootPath, dbResponse.ImageUrl.TrimStart('\\'));
+            if (System.IO.File.Exists(oldImagePath)) System.IO.File.Delete(oldImagePath);
             _unitOfWork.Product.Remove(dbResponse);
             _unitOfWork.Save();
-            TempData["success"] = "Category deleted successfully";
-            return RedirectToAction("Index");
+
+            //TempData["success"] = "Category deleted successfully";
+            return Json(new { success = true, message = "Delete Successful" });
         }
 
     }
