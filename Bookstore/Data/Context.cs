@@ -8,5 +8,8 @@ namespace Bookstore.Data {
         }
 
         public DbSet<Category> Categories { get; set; }
+        public DbSet<CoverType> CoverTypes { get; set; }
+        public DbSet<Product> Products { get; set; } //volver hacer la migracion con la SSSSS
+
     }
 }
