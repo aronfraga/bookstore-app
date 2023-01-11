@@ -166,6 +166,7 @@ namespace Bookstore.Areas.Identity.Pages.Account
                 user.PostalCode = Input.PostalCode;
                 user.Name = Input.Name;
                 user.PhoneNumber = Input.PhoneNumber;
+                
                 if(Input.Role == Roles.Role_User_Company) {
                     user.CompanyId = Input.CompanyId;
                 }

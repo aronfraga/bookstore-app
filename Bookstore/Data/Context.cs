@@ -13,6 +13,7 @@ namespace Bookstore.Data {
         public DbSet<Product> Products { get; set; }
 		public DbSet<ApplicationUser> ApplicationUsers { get; set; }
 		public DbSet<Company> Companies { get; set; }
+        public DbSet<ShoppingCard> ShoppingCards { get; set; }
 
 	}
 }

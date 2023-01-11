@@ -8,6 +8,8 @@ namespace Bookstore.Repository.IRepository {
         ICoverTypeRepository CoverType { get; }
         IProductRepository Product { get; }
 		ICompanyRepository Company { get; }
+        IShoppingCardRepository ShoppingCard { get; }
+        IApplicationUserRepository ApplicationUser { get; }
 
 		void Save();
 

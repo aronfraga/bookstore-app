@@ -9,6 +9,7 @@ using Bookstore.Utility;
 var builder = WebApplication.CreateBuilder(args);
 var ConnectionString = builder.Configuration.GetConnectionString("dbConnection");
 
+builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<Context>(data => data.UseSqlServer(ConnectionString));
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(/*data => data.SignIn.RequireConfirmedAccount = true*/)
@@ -16,9 +17,12 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(/*data => data.SignIn.R
     .AddEntityFrameworkStores<Context>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
-
-builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
+builder.Services.ConfigureApplicationCookie(data => {
+    data.LoginPath = $"/Identity/Account/Login";
+    data.LogoutPath = $"/Identity/Account/Logout";
+    data.AccessDeniedPath = $"/Identity/Account/AccessDenied";
+});
 
 var app = builder.Build();
 
@@ -30,11 +34,13 @@ if (!app.Environment.IsDevelopment()) {
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-app.UseAuthorization();
+
 app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapRazorPages();
 app.MapControllerRoute(
-    name: "default",
-    pattern: "{area=Customer}/{controller=Home}/{action=Index}/{id?}");
+	name: "default",
+	pattern: "{area=Customer}/{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

@@ -1,7 +1,9 @@
 ﻿using Bookstore.Models;
 using Bookstore.Repository.IRepository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Security.Claims;
 
 namespace Bookstore.Areas.Customer.Controllers
 {
@@ -21,12 +23,33 @@ namespace Bookstore.Areas.Customer.Controllers
             return View(productsList);
         }
 
-		public IActionResult Details(int id) {
-			ShoppingCard cartObj = new() {
-				Count = 1,
-				Product = _unitOfWork.Product.GetOne(u => u.Id == id, includeProperties: "Category,CoverType"),
-			};
-			return View(cartObj);
+        public IActionResult Details(int productId) {
+            ShoppingCard cartObj = new() {
+                Count = 1,
+                ProductId = productId,
+                Product = _unitOfWork.Product.GetOne(u => u.Id == productId, includeProperties: "Category,CoverType"),
+            };
+            return View(cartObj);
+        }
+
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		[Authorize]
+		public IActionResult Details(ShoppingCard shoppingCard) {
+			var claimsIdentity = (ClaimsIdentity)User.Identity;
+			var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+			shoppingCard.ApplicationUserId = claim.Value;
+
+            ShoppingCard cardFromDb = _unitOfWork.ShoppingCard.GetOne(data => data.ApplicationUserId == claim.Value && 
+                                                                              data.ProductId == shoppingCard.ProductId);
+
+            if(cardFromDb== null) {
+				_unitOfWork.ShoppingCard.Add(shoppingCard);
+			} else {
+                _unitOfWork.ShoppingCard.IncrementQty(cardFromDb, shoppingCard.Count);
+            }
+            _unitOfWork.Save();
+			return RedirectToAction(nameof(Index));
 		}
 
 		[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

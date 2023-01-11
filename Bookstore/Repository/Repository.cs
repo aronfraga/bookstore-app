@@ -5,50 +5,53 @@ using System.Linq.Expressions;
 
 namespace Bookstore.Repository {
 
-    public class Repository<T> : IRepository<T> where T : class {
+	public class Repository<T> : IRepository<T> where T : class {
 
-        private readonly Context _dbcontext;
-        internal DbSet<T> dbSet;
+		private readonly Context _dbcontext;
+		internal DbSet<T> dbSet;
 
-        public Repository(Context dbcontext) {
-            _dbcontext = dbcontext;
-            _dbcontext.Products.Include(data => data.Category).Include(data => data.CoverType);
-            this.dbSet = _dbcontext.Set<T>();
-        }
+		public Repository(Context dbcontext) {
+			_dbcontext = dbcontext;
+			//_dbcontext.Products.Include(data => data.Category).Include(data => data.CoverType);
+			this.dbSet = _dbcontext.Set<T>();
+		}
 
-        public void Add(T entity) {
-            dbSet.Add(entity);
-            _dbcontext.SaveChanges();
-        }
+		public void Add(T entity) {
+			dbSet.Add(entity);
+			_dbcontext.SaveChanges();
+		}
 
-        public IEnumerable<T> GetAll(string? includeProperties = null) {
-            IQueryable<T> query = dbSet;
-            if (includeProperties != null) {
-                foreach (var item in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries)) {
-                    query = query.Include(item);
-                }
-            }
-            return query.ToList();
-        }
+		public IEnumerable<T> GetAll(Expression<Func<T, bool>>? filter = null, string? includeProperties = null) {
+			IQueryable<T> query = dbSet;
 
-        public T GetOne(Expression<Func<T, bool>> filter, string? includeProperties = null) {
-            IQueryable<T> query = dbSet;
-            if (includeProperties != null) {
-                foreach (var item in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries)) {
-                    query = query.Include(item);
-                }
-            }
-            query = query.Where(filter);
-            return query.FirstOrDefault();
-        }
+			if(filter != null) query = query.Where(filter);
 
-        public void Remove(T entity) {
-            dbSet.Remove(entity);
-        }
+			if (includeProperties != null) {
+				foreach (var item in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries)) {
+					query = query.Include(item);
+				}
+			}
+			return query.ToList();
+		}
 
-        public void RemoveRange(IEnumerable<T> entity) {
-            dbSet.RemoveRange(entity);
-        }
-    }
+		public T GetOne(Expression<Func<T, bool>> filter, string? includeProperties = null) {
+			IQueryable<T> query = dbSet;
+			if (includeProperties != null) {
+				foreach (var item in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries)) {
+					query = query.Include(item);
+				}
+			}
+			query = query.Where(filter);
+			return query.FirstOrDefault();
+		}
+
+		public void Remove(T entity) {
+			dbSet.Remove(entity);
+		}
+
+		public void RemoveRange(IEnumerable<T> entity) {
+			dbSet.RemoveRange(entity);
+		}
+	}
 
 }
