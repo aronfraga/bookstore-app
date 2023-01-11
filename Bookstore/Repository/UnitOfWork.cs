@@ -11,13 +11,15 @@ namespace Bookstore.Repository {
             Category = new CategoryRepository(dbcontext);
             CoverType = new CoverTypeRepository(dbcontext);
             Product = new ProductRepository(dbcontext);
-        }
+			Company = new CompanyRepository(dbcontext);
+		}
 
         public ICategoryRepository Category { get; private set; }
         public ICoverTypeRepository CoverType { get; private set; }
         public IProductRepository Product { get; private set; }
+		public ICompanyRepository Company { get; private set; }
 
-        public void Save() {
+		public void Save() {
             _dbcontext.SaveChanges();
         }
 
