@@ -5,12 +5,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Bookstore.Utility;
+using Microsoft.Extensions.DependencyInjection;
+using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 var ConnectionString = builder.Configuration.GetConnectionString("dbConnection");
+var Stripe = builder.Configuration.GetSection("Stripe");
+var StripeSecret = builder.Configuration.GetSection("Stripe:SecretKey").Get<string>();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<Context>(data => data.UseSqlServer(ConnectionString));
+builder.Services.Configure<StripeSetting>(Stripe);
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(/*data => data.SignIn.RequireConfirmedAccount = true*/)
     .AddDefaultTokenProviders()
@@ -34,6 +39,8 @@ if (!app.Environment.IsDevelopment()) {
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+
+StripeConfiguration.ApiKey = StripeSecret;
 
 app.UseAuthentication();
 app.UseAuthorization();

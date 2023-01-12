@@ -14,6 +14,8 @@ namespace Bookstore.Repository {
 			Company = new CompanyRepository(dbcontext);
             ShoppingCard = new ShoppingCardRepository(dbcontext);
             ApplicationUser = new ApplicationUserRepository(dbcontext);
+            OrderDetail = new OrderDetailRepository(dbcontext);
+            OrderHeader = new OrderHeaderRepository(dbcontext);
 		}
 
         public ICategoryRepository Category { get; private set; }
@@ -22,6 +24,8 @@ namespace Bookstore.Repository {
 		public ICompanyRepository Company { get; private set; }
         public IShoppingCardRepository ShoppingCard { get; private set; }
         public IApplicationUserRepository ApplicationUser { get; private set; }
+        public IOrderDetailRepository OrderDetail { get; private set; }
+        public IOrderHeaderRepository OrderHeader { get; private set; }
 
 		public void Save() {
             _dbcontext.SaveChanges();

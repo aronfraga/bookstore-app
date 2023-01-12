@@ -10,6 +10,8 @@ namespace Bookstore.Repository.IRepository {
 		ICompanyRepository Company { get; }
         IShoppingCardRepository ShoppingCard { get; }
         IApplicationUserRepository ApplicationUser { get; }
+        IOrderDetailRepository OrderDetail { get; }
+        IOrderHeaderRepository OrderHeader { get; }
 
 		void Save();
 

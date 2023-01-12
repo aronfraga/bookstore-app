@@ -3,6 +3,7 @@
 
 		public IEnumerable<ShoppingCard> ListCard { get; set; }
 
-		public double CardTotal { get; set; }
+		public OrderHeader OrderHeader { get; set; }
+
 	}
 }
