@@ -12,6 +12,7 @@ namespace Bookstore.Repository {
 
 		public Repository(Context dbcontext) {
 			_dbcontext = dbcontext;
+			//_dbcontext.ShoppingCards.AsNoTracking();
 			//_dbcontext.Products.Include(data => data.Category).Include(data => data.CoverType);
 			this.dbSet = _dbcontext.Set<T>();
 		}
@@ -34,8 +35,15 @@ namespace Bookstore.Repository {
 			return query.ToList();
 		}
 
-		public T GetOne(Expression<Func<T, bool>> filter, string? includeProperties = null) {
-			IQueryable<T> query = dbSet;
+		public T GetOne(Expression<Func<T, bool>> filter, string? includeProperties = null, bool tracked = true) {
+			IQueryable<T> query;
+
+			if (tracked) {
+				query = dbSet;
+			} else {
+				query = dbSet.AsNoTracking();
+			}
+
 			if (includeProperties != null) {
 				foreach (var item in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries)) {
 					query = query.Include(item);
