@@ -7,6 +7,7 @@ using System.Security.Claims;
 using Bookstore.Utility;
 using Stripe.Checkout;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace Bookstore.Areas.Customer.Controllers {
 
@@ -15,12 +16,14 @@ namespace Bookstore.Areas.Customer.Controllers {
 	public class CartController : Controller {
 
 		private readonly IUnitOfWork _unitOfWork;
+		private readonly IEmailSender _emailSender;
 		
 		[BindProperty]
 		public ShoppingCardViewModel ShoppingCardViewModel { get; set; }
 
-		public CartController(IUnitOfWork unitOfWork) {
+		public CartController(IUnitOfWork unitOfWork, IEmailSender emailSender) {
 			_unitOfWork = unitOfWork;
+			_emailSender = emailSender;
 		}
 		
 		public IActionResult Index() {
@@ -148,7 +151,7 @@ namespace Bookstore.Areas.Customer.Controllers {
 
 		public IActionResult OrderConfirmation(int id) {
 
-			OrderHeader orderHeader = _unitOfWork.OrderHeader.GetOne(data => data.Id == id);
+			OrderHeader orderHeader = _unitOfWork.OrderHeader.GetOne(data => data.Id == id, includeProperties:"ApplicationUser");
 
 			if(orderHeader.PaymentStatus == Status.PaymentStatusDelayedPayment) {
 				var service = new SessionService();
@@ -161,8 +164,11 @@ namespace Bookstore.Areas.Customer.Controllers {
 				}
 			}
 
+			_emailSender.SendEmailAsync(orderHeader.ApplicationUser.Email, "New Order - BookStore", "<p>New Order Created</>");
+
 			List<ShoppingCard> shoppingCards = _unitOfWork.ShoppingCard.GetAll(data => data.ApplicationUserId ==
 																					   orderHeader.ApplicationUserId).ToList();
+			HttpContext.Session.Clear();
 			_unitOfWork.ShoppingCard.RemoveRange(shoppingCards);
 			_unitOfWork.Save();
 			return View(id);
@@ -178,7 +184,9 @@ namespace Bookstore.Areas.Customer.Controllers {
 		public IActionResult Minus(int cardId) {
 			var cart = _unitOfWork.ShoppingCard.GetOne(data => data.Id == cardId);
 			_unitOfWork.ShoppingCard.DecrementQty(cart, 1);
-			_unitOfWork.Save();
+            var count = _unitOfWork.ShoppingCard.GetAll(data => data.ApplicationUserId == cart.ApplicationUserId).ToList().Count - 1;
+            HttpContext.Session.SetInt32(Status.SessionCart, count);
+            _unitOfWork.Save();
 			return RedirectToAction(nameof(Index));
 		}
 
@@ -186,6 +194,8 @@ namespace Bookstore.Areas.Customer.Controllers {
 			var cart = _unitOfWork.ShoppingCard.GetOne(data => data.Id == cardId);
 			_unitOfWork.ShoppingCard.Remove(cart);
 			_unitOfWork.Save();
+			var count = _unitOfWork.ShoppingCard.GetAll(data => data.ApplicationUserId == cart.ApplicationUserId).ToList().Count;
+			HttpContext.Session.SetInt32(Status.SessionCart, count);
 			return RedirectToAction(nameof(Index));
 		}
 

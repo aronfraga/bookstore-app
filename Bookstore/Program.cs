@@ -17,16 +17,24 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<Context>(data => data.UseSqlServer(ConnectionString));
 builder.Services.Configure<StripeSetting>(Stripe);
 
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(/*data => data.SignIn.RequireConfirmedAccount = true*/)
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddDefaultTokenProviders()
     .AddEntityFrameworkStores<Context>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
+
 builder.Services.ConfigureApplicationCookie(data => {
     data.LoginPath = $"/Identity/Account/Login";
     data.LogoutPath = $"/Identity/Account/Logout";
     data.AccessDeniedPath = $"/Identity/Account/AccessDenied";
+});
+
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(data => {
+    data.IdleTimeout = TimeSpan.FromMinutes(100);
+    data.Cookie.HttpOnly = true;
+    data.Cookie.IsEssential = true;
 });
 
 var app = builder.Build();
@@ -44,7 +52,7 @@ StripeConfiguration.ApiKey = StripeSecret;
 
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.UseSession();
 app.MapRazorPages();
 app.MapControllerRoute(
 	name: "default",

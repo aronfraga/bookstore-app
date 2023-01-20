@@ -1,12 +1,15 @@
 ﻿using Bookstore.Data;
 using Bookstore.Models;
 using Bookstore.Repository.IRepository;
+using Bookstore.Utility;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Bookstore.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = Roles.Role_Admin)]
     public class CategoryController : Controller
     {
 

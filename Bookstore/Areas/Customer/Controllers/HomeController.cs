@@ -1,5 +1,6 @@
 ﻿using Bookstore.Models;
 using Bookstore.Repository.IRepository;
+using Bookstore.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
@@ -45,10 +46,13 @@ namespace Bookstore.Areas.Customer.Controllers
 
             if(cardFromDb== null) {
 				_unitOfWork.ShoppingCard.Add(shoppingCard);
+                _unitOfWork.Save();
+                HttpContext.Session.SetInt32(Status.SessionCart, 
+                    _unitOfWork.ShoppingCard.GetAll(data => data.ApplicationUserId == claim.Value).ToList().Count);
 			} else {
                 _unitOfWork.ShoppingCard.IncrementQty(cardFromDb, shoppingCard.Count);
+                _unitOfWork.Save();
             }
-            _unitOfWork.Save();
 			return RedirectToAction(nameof(Index));
 		}
 
