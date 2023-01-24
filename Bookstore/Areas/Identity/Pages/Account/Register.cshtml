@@ -5,13 +5,12 @@
     ViewData["Title"] = "Register";
 }
 @if (User.IsInRole(Roles.Role_Admin)) {
-    <h1 class="pt-4">Register - Admin Portal</h1>
+    <h1 class="pt-5">Register - Admin Portal</h1>
 } else {
-    <h1 class="pt-4">@ViewData["Title"]</h1>
+    <h1 class="pt-5">@ViewData["Title"]</h1>
 }
 
-
-<div class="row pt-4">
+<div class="row pt-5">
     <div class="col-md-7">
         <form id="registerForm" class="row" asp-route-returnUrl="@Model.ReturnUrl" method="post">
             <h2>Create a new account.</h2>

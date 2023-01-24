@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Bookstore.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20230119130453_Database")]
-    partial class Database
+    [Migration("20230123233639_dbconection")]
+    partial class dbconection
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

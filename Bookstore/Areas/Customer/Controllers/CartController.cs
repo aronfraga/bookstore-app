@@ -111,7 +111,7 @@ namespace Bookstore.Areas.Customer.Controllers {
 
 			if (applicationUser.CompanyId.GetValueOrDefault() == 0) {
 
-				var domain = "https://localhost:44300/";
+				var domain = "https://aronfraga-001-site4.htempurl.com/";
 
 				var options = new SessionCreateOptions {
 					LineItems = new List<SessionLineItemOptions>(),
